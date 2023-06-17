@@ -1,0 +1,1034 @@
+//TODO
+//인벤 아이템 위치
+//대사 넣기
+//선택지
+//맵 
+#include <stdio.h>
+#include <SFML/Graphics.hpp>
+#include <stdlib.h>
+#include <ctime>
+#include <SFML/Audio.hpp>
+#include <iostream>
+#include <String> //대사
+#include <string> //cout
+
+#define _CRT_SECURE_NO_WARNINGS
+
+using namespace std;
+
+using namespace sf;
+
+
+struct Textures {
+    Texture title_bg;
+    Texture home_bg;
+
+    Texture start_btn_def;
+    Texture quit_btn_def;
+    Texture start_btn_sel;
+    Texture quit_btn_sel;
+
+    Texture main_ch_front_x;
+    Texture main_ch_right_x;
+    Texture main_ch_left_x;
+    Texture main_ch_back_x;
+
+    Texture main_ch_front_o;
+    Texture main_ch_right_o;
+    Texture main_ch_left_o;
+    Texture main_ch_back_o;
+
+    Texture main_ch_w_f_x_1;
+    Texture main_ch_w_f_x_2;
+    Texture main_ch_w_f_x_3;
+    Texture main_ch_w_f_x_4;
+
+    Texture main_ch_w_b_x_1;
+    Texture main_ch_w_b_x_2;
+
+
+    Texture main_ch_w_l_x_1;
+    Texture main_ch_w_l_x_2;
+    Texture main_ch_w_l_x_3;
+    Texture main_ch_w_l_x_4;
+
+    Texture main_ch_w_r_x_1;
+    Texture main_ch_w_r_x_2;
+    Texture main_ch_w_r_x_3;
+    Texture main_ch_w_r_x_4;
+
+
+    Texture dialogbox;
+
+    //아이템 작은 이미지
+    Texture item_frism;
+    Texture item_piston;
+    Texture item_speaker;
+    Texture item_belt;
+    Texture item_bolt;
+    Texture item_bridge;
+    Texture item_line;
+    Texture item_stick;
+    Texture item_wiyer;
+    Texture item_zender;
+    //아이템 큰 이미지
+    Texture item_frism_show;
+    Texture item_piston_show;
+    Texture item_speaker_show;
+    Texture item_belt_show;
+    Texture item_bolt_show;
+    Texture item_bridge_show;
+    Texture item_line_show;
+    Texture item_stick_show;
+    Texture item_wiyer_show;
+    Texture item_zender_show;
+
+    Texture scene1dialog;
+    Texture scene2dialog;
+    Texture scene3dialog;
+    Texture scene4dialog;
+    Texture scene5dialog;
+    Texture scene6dialog;
+    Texture scene7dialog;
+    Texture scene8dialog;
+    Texture scene9dialog;
+    Texture scene10dialog;
+
+    Texture map;
+    Texture map_A;
+    Texture map_B;
+    Texture map_C;
+    Texture map_main;
+    Texture map_bunker;
+
+    Texture inventory;
+
+    Texture skip;
+};
+
+struct Button {
+    RectangleShape sprite;
+};
+
+struct Player {
+    RectangleShape sprite;
+    int speed;
+};
+
+struct Inventory {
+    RectangleShape sprite;
+};
+
+
+
+
+
+const int W_WIDTH = 1600, W_HEIGHT = 900;
+const int INVEN_WIDTH = 1300, INVEN_HEIGHT = 722;
+const int MAP_WIDTH = 1300, MAP_HEIGHT = 700;
+bool  item_bolt_bool = true; //전역변수 자제하는 것이 좋음
+
+int main(void) {
+    //씬별 프레임 개수
+    int scene_length[] = { 50, 49, 50, 50, 51, 50, 50 };
+
+    Vector2i mouse_pos;
+    int layer = 0;
+    int hand = 0;
+    int bag = 0;
+    int cnt = 0;
+    int observing = 0;
+    bool isMoving = false;
+
+
+
+    //타이머
+    Clock clock;
+    Clock ch_timer;
+    float interval = 0;
+    int count = 0;
+
+    const Time change_time = seconds(0.2f);
+    const Time change2_time = seconds(0.4f);
+    const Time change3_time = seconds(0.6f);
+    const Time change4_time = seconds(0.8f);
+
+    //시점 고정
+    View view;
+    view.setCenter(Vector2f(W_WIDTH / 2, W_HEIGHT / 2));
+    view.setSize(Vector2f(W_WIDTH, W_HEIGHT));
+
+    //사진 로드
+    struct Textures tex;
+    tex.title_bg.loadFromFile("./resource/images/background/title_img.png");
+    tex.home_bg.loadFromFile("./resource/images/background/map_home.png");
+
+    tex.start_btn_def.loadFromFile("./resource/images/btn/title_start_default.png");
+    tex.start_btn_sel.loadFromFile("./resource/images/btn/title_start_selected.png");
+    tex.quit_btn_def.loadFromFile("./resource/images/btn/title_exit_default.png");
+    tex.quit_btn_sel.loadFromFile("./resource/images/btn/title_exit_selected.png");
+
+
+    tex.main_ch_front_x.loadFromFile("./resource/images/character/main_ch/front/ch_f_x.png");
+    tex.main_ch_right_x.loadFromFile("./resource/images/character/main_ch/right/ch_r_x.png");
+    tex.main_ch_left_x.loadFromFile("./resource/images/character/main_ch/left/ch_l_x.png");
+    tex.main_ch_back_x.loadFromFile("./resource/images/character/main_ch/back/ch_b_x.png");
+
+    tex.main_ch_w_f_x_1.loadFromFile("./resource/images/character/main_ch/front/f_x_1.png");
+    tex.main_ch_w_f_x_2.loadFromFile("./resource/images/character/main_ch/front/f_x_2.png");
+    tex.main_ch_w_f_x_3.loadFromFile("./resource/images/character/main_ch/front/f_x_3.png");
+    tex.main_ch_w_f_x_4.loadFromFile("./resource/images/character/main_ch/front/f_x_4.png");
+
+    tex.main_ch_w_b_x_1.loadFromFile("./resource/images/character/main_ch/back/b_x_1.png");
+    tex.main_ch_w_b_x_2.loadFromFile("./resource/images/character/main_ch/back/b_x_2.png");
+
+
+
+    tex.main_ch_w_l_x_1.loadFromFile("./resource/images/character/main_ch/left/l_x_1.png");
+    tex.main_ch_w_l_x_2.loadFromFile("./resource/images/character/main_ch/left/l_x_2.png");
+    tex.main_ch_w_l_x_3.loadFromFile("./resource/images/character/main_ch/left/l_x_3.png");
+    tex.main_ch_w_l_x_4.loadFromFile("./resource/images/character/main_ch/left/l_x_4.png");
+
+    tex.main_ch_w_r_x_1.loadFromFile("./resource/images/character/main_ch/right/r_x_1.png");
+    tex.main_ch_w_r_x_2.loadFromFile("./resource/images/character/main_ch/right/r_x_2.png");
+    tex.main_ch_w_r_x_3.loadFromFile("./resource/images/character/main_ch/right/r_x_3.png");
+    tex.main_ch_w_r_x_4.loadFromFile("./resource/images/character/main_ch/right/r_x_4.png");
+
+    tex.main_ch_front_o.loadFromFile("./resource/images/character/main_ch/front/ch_f_o.png");
+    tex.main_ch_right_o.loadFromFile("./resource/images/character/main_ch/right/ch_r_o.png");
+    tex.main_ch_left_o.loadFromFile("./resource/images/character/main_ch/left/ch_l_o.png");
+    tex.main_ch_back_o.loadFromFile("./resource/images/character/main_ch/back/ch_b_o.png");
+
+    //아이템 이미지 (맵, 인벤토리)
+    tex.item_frism.loadFromFile("./resource/images/item/sml_item_frism.png");
+    tex.item_piston.loadFromFile("./resource/images/item/sml_item_piston.png");
+    tex.item_speaker.loadFromFile("./resource/images/item/sml_item_speaker.png");
+    tex.item_belt.loadFromFile("./resource/images/item/sml_items_belt.png");
+    tex.item_bolt.loadFromFile("./resource/images/item/sml_items_bolt.png");
+    tex.item_bridge.loadFromFile("./resource/images/item/sml_items_bridge.png");
+    tex.item_line.loadFromFile("./resource/images/item/sml_items_line.png");
+    tex.item_stick.loadFromFile("./resource/images/item/sml_items_stick.png");
+    tex.item_wiyer.loadFromFile("./resource/images/item/sml_items_wiyer.png");
+    tex.item_zender.loadFromFile("./resource/images/item/sml_items_zender.png");
+
+    //아이템 이미지 (획득시 화면에 크게 뜨는 이미지)
+    tex.item_frism_show.loadFromFile("./resource/images/item/item_frism.png");
+    tex.item_piston_show.loadFromFile("./resource/images/item/item_piston.png");
+    tex.item_speaker_show.loadFromFile("./resource/images/item/item_speaker.png");
+    tex.item_belt_show.loadFromFile("./resource/images/item/items_belt.png");
+    tex.item_bolt_show.loadFromFile("./resource/images/item/items_bolt.png");
+    tex.item_bridge_show.loadFromFile("./resource/images/item/items_bridge.png");
+    tex.item_line_show.loadFromFile("./resource/images/item/items_line.png");
+    tex.item_stick_show.loadFromFile("./resource/images/item/items_stick.png");
+    tex.item_wiyer_show.loadFromFile("./resource/images/item/items_wiyer.png");
+    tex.item_zender_show.loadFromFile("./resource/images/item/items_zender.png");
+
+    //컷씬 대사
+    tex.scene1dialog.loadFromFile("./resource/images/text/s1.png");
+    tex.scene2dialog.loadFromFile("./resource/images/text/s2.png");
+    tex.scene3dialog.loadFromFile("./resource/images/text/s3.png");
+    tex.scene4dialog.loadFromFile("./resource/images/text/s4.png");
+    tex.scene5dialog.loadFromFile("./resource/images/text/s5.png");
+    tex.scene6dialog.loadFromFile("./resource/images/text/s6.png");
+    tex.scene7dialog.loadFromFile("./resource/images/text/s7.png");
+    tex.scene8dialog.loadFromFile("./resource/images/text/s8.png");
+    tex.scene9dialog.loadFromFile("./resource/images/text/s9.png");
+    tex.scene10dialog.loadFromFile("./resource/images/text/s10.png");
+
+    //맵
+    tex.map.loadFromFile("./resource/images/map/map.png");
+    tex.map_A.loadFromFile("./resource/images/map/map_A.png");
+    tex.map_B.loadFromFile("./resource/images/map/map_B.png");
+    tex.map_C.loadFromFile("./resource/images/map/map_C.png");
+    tex.map_main.loadFromFile("./resource/images/map/map_main.png");
+    tex.map_bunker.loadFromFile("./resource/images/map/map_bunker.png");
+
+    //스킵안내버튼
+    tex.skip.loadFromFile("./resource/images/ui/skip.png");
+
+    //scene1
+    Texture textures[50];
+    string filenameFormat1 = "./resource/images/scene/scene1/scene1 (%d).png";
+    char filename[99];
+    for (int i = 0; i <= 49; i++)
+    {
+        sprintf_s(filename, filenameFormat1.c_str(), i); //파일명을 filename에 저장
+        textures[i].loadFromFile(filename);
+    }
+    //scene2
+    Texture textures2[49];
+    string filenameFormat2 = "./resource/images/scene/scene2/scene2 (%d).png";
+    for (int i = 0; i <= 48; i++)
+    {
+        sprintf_s(filename, filenameFormat2.c_str(), i); //파일명을 filename에 저장
+        textures2[i].loadFromFile(filename);
+    }
+    //scene3
+    Texture textures3[50];
+    string filenameFormat3 = "./resource/images/scene/scene3/scene3 (%d).png";
+    for (int i = 0; i <= 49; i++)
+    {
+        sprintf_s(filename, filenameFormat3.c_str(), i); //파일명을 filename에 저장
+        textures3[i].loadFromFile(filename);
+    }
+    //scene4
+    Texture textures4[50];
+    string filenameFormat4 = "./resource/images/scene/scene4/scene4 (%d).png";
+    for (int i = 0; i <= 49; i++)
+    {
+        sprintf_s(filename, filenameFormat4.c_str(), i); //파일명을 filename에 저장
+        textures4[i].loadFromFile(filename);
+    }
+    //scene5
+    Texture textures5[50];
+    string filenameFormat5 = "./resource/images/scene/scene5/scene5 (%d).png";
+    for (int i = 0; i <= 49; i++)
+    {
+        sprintf_s(filename, filenameFormat5.c_str(), i); //파일명을 filename에 저장
+        textures5[i].loadFromFile(filename);
+    }
+    //scene6
+    Texture textures6[50];
+    string filenameFormat6 = "./resource/images/scene/scene6/scene6 (%d).png";
+    for (int i = 0; i <= 49; i++)
+    {
+        sprintf_s(filename, filenameFormat6.c_str(), i); //파일명을 filename에 저장
+        textures6[i].loadFromFile(filename);
+    }
+    //scene7
+    Texture textures7[50];
+    string filenameFormat7 = "./resource/images/scene/scene7/scene7 (%d).png";
+    for (int i = 0; i <= 49; i++)
+    {
+        sprintf_s(filename, filenameFormat7.c_str(), i); //파일명을 filename에 저장
+        textures7[i].loadFromFile(filename);
+    }
+    //scene8
+    Texture textures8[45];
+    string filenameFormat8 = "./resource/images/scene/scene8/scene8 (%d).png";
+    for (int i = 0; i <= 44; i++)
+    {
+        sprintf_s(filename, filenameFormat8.c_str(), i); //파일명을 filename에 저장
+        textures8[i].loadFromFile(filename);
+    }
+    //scene9
+    Texture textures9[51];
+    string filenameFormat9 = "./resource/images/scene/scene9/scene9 (%d).png";
+    for (int i = 0; i <= 50; i++)
+    {
+        sprintf_s(filename, filenameFormat9.c_str(), i); //파일명을 filename에 저장
+        textures9[i].loadFromFile(filename);
+    }
+    //scene10
+    Texture textures10[90];
+    string filenameFormat10 = "./resource/images/scene/scene10/scene10 (%d).png";
+    for (int i = 0; i <= 89; i++)
+    {
+        sprintf_s(filename, filenameFormat10.c_str(), i); //파일명을 filename에 저장
+        textures10[i].loadFromFile(filename);
+
+    }
+
+
+
+
+    tex.inventory.loadFromFile("./resource/images/ui/inventory.png");
+
+    tex.dialogbox.loadFromFile("./resource/images/box/dialogbox.png");
+
+    RenderWindow window(VideoMode(W_WIDTH, W_HEIGHT), "Frontier");
+    window.setFramerateLimit(60);
+
+    //대화창
+    Sprite dialogbox;
+    dialogbox.setTexture(tex.dialogbox);
+    dialogbox.setColor(sf::Color(255, 255, 255, 150));//투명도
+    dialogbox.setPosition((window.getSize().x - dialogbox.getGlobalBounds().width) / 2.0f, 700);//대화창 크기를 빼고 나누기 2 (중앙)
+
+    //지도
+    Sprite map_A;
+    map_A.setTexture(tex.map_A);
+    Sprite map_B;
+    map_B.setTexture(tex.map_B);
+    Sprite map_C;
+    map_C.setTexture(tex.map_C);
+    Sprite map_main;
+    map_main.setTexture(tex.map_main);
+    Sprite map_bunker;
+    map_bunker.setTexture(tex.map_bunker);
+  
+
+
+    //스킵안내
+    Sprite skip;
+    skip.setTexture(tex.skip);
+    skip.setPosition(W_WIDTH - 200, W_HEIGHT - 850);
+
+    //배경
+    Sprite title;
+    title.setTexture(tex.title_bg);
+    title.setPosition(0, 0);
+
+    //컷씬1 대사
+    Sprite scene1dialog;
+    scene1dialog.setTexture(tex.scene1dialog);
+    scene1dialog.setPosition(0, 0);
+    //컷씬2 대사
+    Sprite scene2dialog;
+    scene2dialog.setTexture(tex.scene2dialog);
+    scene2dialog.setPosition(0, 0);
+    //컷씬3 대사
+    Sprite scene3dialog;
+    scene3dialog.setTexture(tex.scene3dialog);
+    scene3dialog.setPosition(0, 0);
+    //컷씬4 대사
+    Sprite scene4dialog;
+    scene4dialog.setTexture(tex.scene4dialog);
+    scene4dialog.setPosition(0, 0);
+    //컷씬5 대사
+    Sprite scene5dialog;
+    scene5dialog.setTexture(tex.scene5dialog);
+    scene5dialog.setPosition(0, 0);
+    //컷씬6 대사
+    Sprite scene6dialog;
+    scene6dialog.setTexture(tex.scene6dialog);
+    scene6dialog.setPosition(0, 0);
+    //컷씬7 대사
+    Sprite scene7dialog;
+    scene7dialog.setTexture(tex.scene7dialog);
+    scene7dialog.setPosition(0, 0);
+    //컷씬8 대사
+    Sprite scene8dialog;
+    scene8dialog.setTexture(tex.scene8dialog);
+    scene8dialog.setPosition(0, 0);
+    //컷씬9대사
+    Sprite scene9dialog;
+    scene9dialog.setTexture(tex.scene9dialog);
+    scene9dialog.setPosition(0, 0);
+    //컷씬10 대사
+    Sprite scene10dialog;
+    scene10dialog.setTexture(tex.scene10dialog);
+    scene10dialog.setPosition(0, 0);
+
+
+    //scene1 영상
+    Sprite scene1;
+    scene1.setTexture(textures[0]);
+    scene1.setPosition((window.getSize().x - scene1.getGlobalBounds().width) / 2.0f, 40);
+
+    //scene2 영상
+    Sprite scene2;
+    scene2.setTexture(textures2[0]);
+    scene2.setPosition((window.getSize().x - scene2.getGlobalBounds().width) / 2.0f, 70);
+    //scene3 영상
+    Sprite scene3;
+    scene3.setTexture(textures3[0]);
+    scene3.setPosition((window.getSize().x - scene3.getGlobalBounds().width) / 2.0f, 60);
+    //scene4 영상
+    Sprite scene4;
+    scene4.setTexture(textures4[0]);
+    scene4.setPosition((window.getSize().x - scene4.getGlobalBounds().width) / 2.0f, 50);
+    //scene5 영상
+    Sprite scene5;
+    scene5.setTexture(textures5[0]);
+    scene5.setPosition((window.getSize().x - scene5.getGlobalBounds().width) / 2.0f, 40);
+    //scene6 영상
+    Sprite scene6;
+    scene6.setTexture(textures6[0]);
+    scene6.setPosition((window.getSize().x - scene6.getGlobalBounds().width) / 2.0f, 30);
+    //scene7 영상
+    Sprite scene7;
+    scene7.setTexture(textures7[0]);
+    scene7.setPosition((window.getSize().x - scene7.getGlobalBounds().width) / 2.0f, 20);
+    //scene8 영상
+    Sprite scene8;
+    scene8.setTexture(textures8[0]);
+    scene8.setPosition((window.getSize().x - scene8.getGlobalBounds().width) / 2.0f, 0);
+    //scene9 영상
+    Sprite scene9;
+    scene9.setTexture(textures9[0]);
+    scene9.setPosition((window.getSize().x - scene9.getGlobalBounds().width) / 2.0f, 0);
+    //scene10 영상
+    Sprite scene10;
+    scene10.setTexture(textures10[0]);
+    scene10.setPosition((window.getSize().x - scene10.getGlobalBounds().width) / 2.0f, 0);
+
+
+    Sprite home;
+    home.setTexture(tex.home_bg);
+    home.setPosition(600, -700);
+
+    //플레이어
+    struct Player player;
+    player.sprite.setTexture(&tex.main_ch_front_x);
+    player.sprite.setSize(Vector2f(225, 150));
+    player.sprite.setPosition(W_WIDTH / 2 - 75, W_HEIGHT / 2 - 75);
+    player.speed = 20;
+
+
+    Sprite inventory;
+    inventory.setTexture(tex.inventory);
+
+    Sprite item_bolt;
+    item_bolt.setTexture(tex.item_bolt);
+    item_bolt.setPosition(170, 770);
+    /*
+    Sprite item_b;
+    item_b.setTexture(tex.item_b);
+    item_b.setPosition(170, 770);
+
+    Sprite item_f;
+    item_f.setTexture(tex.item_f);
+    item_f.setPosition(370, 970);
+
+    Sprite item_h;
+    item_h.setTexture(tex.item_h);
+    item_h.setPosition(170, 770);
+
+    Sprite item_m;
+    item_m.setTexture(tex.item_m);
+    item_m.setPosition(170, 770);
+
+    Sprite item_p;
+    item_p.setTexture(tex.item_p);
+    item_p.setPosition(170, 770);
+
+    Sprite item_r;
+    item_r.setTexture(tex.item_r);
+    item_r.setPosition(170, 770);
+
+    Sprite item_s;
+    item_s.setTexture(tex.item_s);
+    item_s.setPosition(170, 770);
+
+    Sprite item_t;
+    item_t.setTexture(tex.item_t);
+    item_t.setPosition(170, 770);
+
+    Sprite item_y;
+    item_y.setTexture(tex.item_y);
+    item_y.setPosition(170, 770);*/
+
+
+    //폰트불러오기
+
+    Font font;
+    font.loadFromFile("./resource/font/IBMPlexSansKR-Medium.ttf");
+    if (!font.loadFromFile("./resource/font/IBMPlexSansKR-Medium.ttf"))
+    {
+        cerr << "Failed to load font file" << endl;
+        return 1;
+    }
+
+    //대사
+    String dialog[] = { //대문자S여야 함
+     L"한글대사", //앞에 L을 붙여야 한글출력 가능
+     L"second line",
+     L"한글대사2.",
+     "hello!"
+    };
+    //cutscene1_프롤로그
+    String cutscene1[] = {
+        L"⋯ 이제는 이 곳도 사람이 살 만한 곳이 못 됩니다.",
+        L"애초에 섬이 생존가능구역으로 구분된 것부터가 이상했다고요. 보셨죠? 어제도 수위가 10cm는 올랐잖아요.",
+        L"과학자님도 하루빨리 여기를 벗어나셔야 해요. 라디오도 안 터진 지 한 달은 넘은 것 같은데⋯.",
+        L"그래요, 오늘은 C구역으로 탐사를 가보는 게 어때요? 혹시 모르죠, 폐쇄된 항구에 무언가 남아있을지.",
+        L"나침반은 고장났으니 제가 길을 안내할게요.",
+    };
+    //cutsecne2_선장
+    String cutscene2[] = {
+        L"예상 못 한 손님이군요. 아직 생존자가 남아있을 줄이야.",
+        L"그건 저희가 할 말이거든요! 당신은 대체 누구죠? 방호구도 없이⋯",
+        L"그게 중요한가요? 보아하니 이 곳의 상황을 알고 온 건 아닌 것 같은데. ",
+        L"저 뒤의 배가 보이시나요?",
+        L"한때⋯ 저와 함께하던 배였죠. 지금은 움직일 수 없지만.",
+        L"당신도 그 곳으로 가려는 거라면 들뜨셨겠지만, 안타깝게 됐군요. 지금으로선 딱히 수리할 방도가 없습니다.",
+        L"그⋯ 곳?",
+        L"둘 다 모르는 눈치로군요. 하긴, 라디오가 끊긴지 한 달 정도가 되었으니. 그 정도는 알려드리지요.",
+        L"그리 멀지 않은 대륙의 생존가능구역에서 지구를 벗어나려는 프로젝트를 진행 중이라는 말을 들었습니다.",
+        L"그 곳 사람들은, 달로 가려는 거죠. 이 가망 없는 지구를 버리고.",
+        L"공식적으로 소식을 들은 사람들은 그리 많지 않지만, 어디선가 소문이 새어나가면서 꽤 많은 유동인구가 생겼습니다.",
+        L"그 때문에 경비를 강화했다던데, 도착해서도 쉽지 않겠지만 당장 여기서 나갈 방도도 없는 상황이군요.",
+        L"당신은 어떻게 그런 정보가 있는 거죠? 웬만한 소식통은 다 끊겼고, 이제 여기에 남아있는 사람도 더 없는데.",
+        L"이런 상황에서 저만 일방적으로 정보를 제공해야 할 이유는 없습니다만.",
+        L"제안을 하나 하죠.",
+        L"보시다시피, 저는 장비 상태가 그리 좋지 않아 여기를 나가기 어렵습니다.",
+        L"배 수리에 필요한 부품을 모아와주신다면 그 때 당신을 돕도록 하죠.",
+        L"⋯ 과학자님, 어떻게 하실래요?",
+        L"사실 선택지가 없어 보이긴 하지만⋯",
+        L"전 나가고 싶어요. 달로 가는 건 모르겠고, 그냥 여기서 좀 탈출하고 싶어요",
+        L"선택지 : 수락한다 / ..."
+    };
+    //cutscene2_선장 선택지 수락
+    String cutscene2_choice_1[] = {
+        L""
+    };
+    //cutscene2_선장 선택지 ...
+    String cutscene2_choice_2[] = {
+        L""
+    };
+
+
+
+
+    // 텍스트 출력용 객체 생성
+    sf::Text text;
+    text.setFont(font);
+    text.setCharacterSize(24);
+    text.setFillColor(sf::Color::White);
+    text.setPosition((window.getSize().x - dialogbox.getGlobalBounds().width) / 2.0f + 100, 800);// 출력할 위치
+    text.setString(L"");
+
+
+    while (window.isOpen())
+
+    {   
+        cout << "~~~~~" << endl;
+        //윈도우가 열려있는 동안
+        float time = clock.getElapsedTime().asMilliseconds();
+        clock.restart();
+
+        interval += time;
+
+        Event event;
+        mouse_pos = Mouse::getPosition(window);
+
+
+        //플레이어 이동
+        if (Keyboard::isKeyPressed(Keyboard::Left) && layer != 0 && !Keyboard::isKeyPressed(Keyboard::Down) && !Keyboard::isKeyPressed(Keyboard::Up)) { //대각선 이동 방지
+            observing = 3;
+            view.move(-player.speed, 0);
+            std::cout << "Player Position: (" << player.sprite.getPosition().x << ", " << player.sprite.getPosition().y << ")" << std::flush;
+            cout << "\n" << flush;
+            player.sprite.move(-player.speed, 0);
+            isMoving = true;
+            if (hand == 0 && isMoving == true) {
+                if (ch_timer.getElapsedTime() > change_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_l_x_1);
+                }
+                if (ch_timer.getElapsedTime() > change2_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_l_x_2);
+                }
+                if (ch_timer.getElapsedTime() > change3_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_l_x_3);
+                }
+                if (ch_timer.getElapsedTime() > change4_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_l_x_4);
+                    ch_timer.restart();
+                }
+            }
+            if (hand == 1 && isMoving == true) {
+                if (ch_timer.getElapsedTime() > change_time) {
+                    player.sprite.setTexture(&tex.main_ch_left_o);
+                }
+                if (ch_timer.getElapsedTime() > change2_time) {
+                    player.sprite.setTexture(&tex.main_ch_left_o);
+                }
+                if (ch_timer.getElapsedTime() > change3_time) {
+                    player.sprite.setTexture(&tex.main_ch_left_o);
+                }
+                if (ch_timer.getElapsedTime() > change4_time) {
+                    player.sprite.setTexture(&tex.main_ch_left_o);
+                    ch_timer.restart();
+                }
+            }
+        }
+        else {
+            if (layer != 0) {
+                switch (observing) {
+                case 3:
+                    if (hand == 0)
+                        player.sprite.setTexture(&tex.main_ch_left_x);
+                    if (hand == 1)
+                        player.sprite.setTexture(&tex.main_ch_left_o);
+                    break;
+                }
+            }
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Right) && layer != 0 && !Keyboard::isKeyPressed(Keyboard::Up) && !Keyboard::isKeyPressed(Keyboard::Down)) { //대각선 이동 방지
+            observing = 4;
+            view.move(player.speed, 0);
+            std::cout << "Player Position: (" << player.sprite.getPosition().x << ", " << player.sprite.getPosition().y << ")" << std::flush;
+            cout << "\n" << flush;
+            player.sprite.move(player.speed, 0);
+            isMoving = true;
+            if (hand == 0 && isMoving == true) {
+                if (ch_timer.getElapsedTime() > change_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_r_x_1);
+                }
+                if (ch_timer.getElapsedTime() > change2_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_r_x_2);
+                }
+                if (ch_timer.getElapsedTime() > change3_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_r_x_3);
+                }
+                if (ch_timer.getElapsedTime() > change4_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_r_x_4);
+                    ch_timer.restart();
+                }
+            }
+            if (hand == 1 && isMoving == true) {
+                if (ch_timer.getElapsedTime() > change_time) {
+                    player.sprite.setTexture(&tex.main_ch_right_o);
+                }
+                if (ch_timer.getElapsedTime() > change2_time) {
+                    player.sprite.setTexture(&tex.main_ch_right_o);
+                }
+                if (ch_timer.getElapsedTime() > change3_time) {
+                    player.sprite.setTexture(&tex.main_ch_right_o);
+                }
+                if (ch_timer.getElapsedTime() > change4_time) {
+                    player.sprite.setTexture(&tex.main_ch_right_o);
+                    ch_timer.restart();
+                }
+            }
+        }
+        else {
+            if (layer != 0) {
+                switch (observing) {
+                case 4:
+                    if (hand == 0)
+                        player.sprite.setTexture(&tex.main_ch_right_x);
+                    if (hand == 1)
+                        player.sprite.setTexture(&tex.main_ch_right_o);
+                    break;
+                }
+            }
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Up) && layer != 0 && !Keyboard::isKeyPressed(Keyboard::Left) && !Keyboard::isKeyPressed(Keyboard::Right)) { //대각선 이동 방지
+            observing = 2;
+            view.move(0, -player.speed);
+            std::cout << "Player Position: (" << player.sprite.getPosition().x << ", " << player.sprite.getPosition().y << ")" << std::flush;
+            cout << "\n" << flush;
+            player.sprite.move(0, -player.speed);
+            isMoving = true;
+            if (hand == 0 && isMoving == true) {
+                if (ch_timer.getElapsedTime() > change_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_b_x_1);
+                }
+                if (ch_timer.getElapsedTime() > change2_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_b_x_2);
+                }
+                if (ch_timer.getElapsedTime() > change3_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_b_x_1);
+                }
+                if (ch_timer.getElapsedTime() > change4_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_b_x_2);
+                    ch_timer.restart();
+                }
+            }
+            if (hand == 1 && isMoving == true) {
+                if (ch_timer.getElapsedTime() > change_time) {
+                    player.sprite.setTexture(&tex.main_ch_back_o);
+                }
+                if (ch_timer.getElapsedTime() > change2_time) {
+                    player.sprite.setTexture(&tex.main_ch_back_o);
+                }
+                if (ch_timer.getElapsedTime() > change3_time) {
+                    player.sprite.setTexture(&tex.main_ch_back_o);
+                }
+                if (ch_timer.getElapsedTime() > change4_time) {
+                    player.sprite.setTexture(&tex.main_ch_back_o);
+                    ch_timer.restart();
+                }
+            }
+        }
+        else {
+            if (layer != 0) {
+                switch (observing) {
+                case 2:
+                    if (hand == 0)
+                        player.sprite.setTexture(&tex.main_ch_back_x);
+                    if (hand == 1)
+                        player.sprite.setTexture(&tex.main_ch_back_o);
+                    break;
+                }
+            }
+        }
+
+
+        if (Keyboard::isKeyPressed(Keyboard::Down) && layer != 0 && !Keyboard::isKeyPressed(Keyboard::Left) && !Keyboard::isKeyPressed(Keyboard::Right)) { //대각선 이동 방지
+            observing = 1;
+            view.move(0, player.speed);
+            std::cout << "Player Position: (" << player.sprite.getPosition().x << ", " << player.sprite.getPosition().y << ")" << std::flush;
+            cout << "\n" << flush;
+            player.sprite.move(0, player.speed);
+            isMoving = true;
+            if (hand == 0 && isMoving == true) {
+                if (ch_timer.getElapsedTime() > change_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_f_x_1);
+                }
+                if (ch_timer.getElapsedTime() > change2_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_f_x_2);
+                }
+                if (ch_timer.getElapsedTime() > change3_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_f_x_3);
+                }
+                if (ch_timer.getElapsedTime() > change4_time) {
+                    player.sprite.setTexture(&tex.main_ch_w_f_x_4);
+                    ch_timer.restart();
+                }
+            }
+            if (hand == 1 && isMoving == true) {
+                if (ch_timer.getElapsedTime() > change_time) {
+                    player.sprite.setTexture(&tex.main_ch_front_o);
+                }
+                if (ch_timer.getElapsedTime() > change2_time) {
+                    player.sprite.setTexture(&tex.main_ch_front_o);
+                }
+                if (ch_timer.getElapsedTime() > change3_time) {
+                    player.sprite.setTexture(&tex.main_ch_front_o);
+                }
+                if (ch_timer.getElapsedTime() > change4_time) {
+                    player.sprite.setTexture(&tex.main_ch_front_o);
+                    ch_timer.restart();
+                }
+            }
+        }
+        else {
+            if (layer != 0) {
+                switch (observing) {
+                case 1:
+                    if (hand == 0)
+                        player.sprite.setTexture(&tex.main_ch_front_x);
+                    if (hand == 1)
+                        player.sprite.setTexture(&tex.main_ch_front_o);
+                    break;
+                }
+            }
+        }
+
+
+        while (window.pollEvent(event)) {   //윈도우 창 닫기
+            switch (event.type) {
+            case Event::Closed:
+                window.close();
+                break;
+            }
+        }
+        window.setView(view);
+        window.clear(Color::Black);
+        if (layer == 0) {
+            window.draw(title);
+
+            //시작 버튼
+            struct Button start_button;
+            start_button.sprite.setTexture(&tex.start_btn_sel);
+            start_button.sprite.setSize(Vector2f(267, 120));
+            start_button.sprite.setPosition(W_WIDTH / 2 - 150, 450);
+            if (start_button.sprite.getGlobalBounds().contains(mouse_pos.x, mouse_pos.y)) {
+                start_button.sprite.setTexture(&tex.start_btn_def);
+            }
+            if (start_button.sprite.getGlobalBounds().contains(mouse_pos.x, mouse_pos.y) && Mouse::isButtonPressed(Mouse::Left))
+                layer = 1;
+
+            //종료 버튼
+            struct Button quit_button;
+            quit_button.sprite.setTexture(&tex.quit_btn_sel);
+            quit_button.sprite.setSize(Vector2f(267, 120));
+            quit_button.sprite.setPosition(W_WIDTH / 2 - 150, 610);
+            if (quit_button.sprite.getGlobalBounds().contains(mouse_pos.x, mouse_pos.y)) {
+                quit_button.sprite.setTexture(&tex.quit_btn_def);
+            }
+            if (quit_button.sprite.getGlobalBounds().contains(mouse_pos.x, mouse_pos.y) && Mouse::isButtonPressed(Mouse::Left))
+                return 0;
+
+            window.draw(start_button.sprite);
+            window.draw(quit_button.sprite);
+        }
+
+        if (layer == 2) {
+            window.draw(home);
+            window.draw(player.sprite);
+        }
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        Clock clock;
+        Time elapsed = Time::Zero;
+        Time frameTime = seconds(0.083f);
+        int sceneindex = 1;
+
+        while (layer==1 && sceneindex < 11)
+        {
+
+            int imgcountmax = 50;
+            switch (sceneindex)
+            {
+            case 2:
+                imgcountmax = 49;
+                break;
+            case 8:
+                imgcountmax = 45;
+                break;
+            case 10:
+                imgcountmax = 90;
+                break;
+            default:
+                imgcountmax = 50;
+                break;
+            }
+
+            int currentTextureIndex = 0;
+
+            while (imgcountmax > currentTextureIndex) {
+                elapsed += clock.restart();
+                while (window.pollEvent(event)) {
+                    switch (event.type) {
+                    case Event::Closed:
+                        window.close();
+                        break;
+                    }
+                }
+                if (elapsed >= frameTime) {
+
+                    if (Keyboard::isKeyPressed(sf::Keyboard::S)) {
+                        layer = 2;
+                        break;
+                    }
+
+                    switch (sceneindex) {
+                    case 1:
+                        scene1.setTexture(textures[currentTextureIndex]);
+                        scene1dialog.setTexture(tex.scene1dialog);
+                        break;
+                    case 2:
+                        scene1.setTexture(textures2[currentTextureIndex]);
+                        scene1dialog.setTexture(tex.scene2dialog);
+                        break;
+                    case 3:
+                        scene1.setTexture(textures3[currentTextureIndex]);
+                        scene1dialog.setTexture(tex.scene3dialog);
+                        break;
+                    case 4:
+                        scene1.setTexture(textures4[currentTextureIndex]);
+                        scene1dialog.setTexture(tex.scene4dialog);
+                        break;
+                    case 5:
+                        scene1.setTexture(textures5[currentTextureIndex]);
+                        scene1dialog.setTexture(tex.scene5dialog);
+                        break;
+                    case 6:
+                        scene1.setTexture(textures6[currentTextureIndex]);
+                        scene1dialog.setTexture(tex.scene6dialog);
+                        break;
+                    case 7:
+                        scene1.setTexture(textures7[currentTextureIndex]);
+                        scene1dialog.setTexture(tex.scene7dialog);
+                        break;
+                    case 8:
+                        scene1.setTexture(textures8[currentTextureIndex]);
+                        scene1dialog.setTexture(tex.scene8dialog);
+                        break;
+                    case 9:
+                        scene1.setTexture(textures9[currentTextureIndex]);
+                        scene1dialog.setTexture(tex.scene9dialog);
+                        break;
+                    case 10:
+                        scene1.setTexture(textures10[currentTextureIndex]);
+                        scene1dialog.setTexture(tex.scene10dialog);
+                        break;
+                    default:
+                        break;
+                    }
+
+                    currentTextureIndex++;
+                    cout << currentTextureIndex << endl;
+                    elapsed -= frameTime;
+                }
+
+                window.draw(scene1dialog);
+                window.draw(skip);
+                window.draw(scene1);
+                window.display();
+
+            }
+
+            cout << sceneindex << endl;
+            sceneindex++;
+            
+            if (sceneindex > 10) {
+                layer = 2;
+                break;
+            }
+        }
+
+
+        cout << item_bolt_bool << endl;
+
+        if (layer == 2 && item_bolt_bool == true) {
+            window.draw(item_bolt);
+            if (player.sprite.getGlobalBounds().intersects(item_bolt.getGlobalBounds())) {
+                item_bolt_bool = false;
+
+                item_bolt.setPosition(100,0);
+                //item_bolt
+            }
+        }
+        
+
+        if (layer != 0) {
+            //bool inven_bool = false;
+            sf::Vector2f player_pos = player.sprite.getPosition();
+            inventory.setPosition(player_pos.x + W_WIDTH / 2 - INVEN_WIDTH - 75, player_pos.y + W_HEIGHT / 2 - INVEN_HEIGHT + 25);
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
+                sf::Clock clock;
+                bool drawInventory = true;
+
+                if (item_bolt_bool == false) {
+                    cout << "item_bolt_bool: " << item_bolt_bool << endl;
+                    item_bolt.setPosition(player_pos.x, player_pos.y);
+                    cout << "==" << endl;
+                }
+                while (window.isOpen()) {
+                    window.draw(inventory);
+                    window.draw(item_bolt);
+                    window.display();
+                    
+                    cout << "complete draw" << endl;
+
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::E) && clock.getElapsedTime().asSeconds() > 0.2f) {
+                        drawInventory = !drawInventory;
+                        clock.restart();
+                    }
+
+                    if (!sf::Keyboard::isKeyPressed(sf::Keyboard::E) && !drawInventory) {
+                        break;
+                    }
+                }
+            }
+        }
+       
+        //지도 띄우기
+        bool mapbool = false;
+        sf::Vector2f player_pos = player.sprite.getPosition();
+        map_bunker.setPosition(player_pos.x + W_WIDTH / 2 + 75 - MAP_WIDTH - 200, player_pos.y + W_HEIGHT / 2 - (MAP_HEIGHT - 75) - 200);
+        map_A.setPosition(player_pos.x + W_WIDTH / 2 + 75 - MAP_WIDTH - 200, player_pos.y + W_HEIGHT / 2 - (MAP_HEIGHT - 75) - 200);
+      
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::M)) {
+            sf::Clock clock;
+            bool drawmap = true;
+
+            while (window.isOpen()) {
+                window.draw(map_bunker);
+                window.draw(map_A);
+                window.display();
+
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::M) && clock.getElapsedTime().asSeconds() > 0.2f) {
+                    drawmap = !drawmap;
+                    clock.restart();
+                }
+
+                if (!sf::Keyboard::isKeyPressed(sf::Keyboard::M) && !drawmap) {
+                    break;
+                }
+            }
+        }
+        window.display();
+    }
+}

@@ -1,0 +1,297 @@
+//TODO:맵 구조 2차원 배열로 바꾸기
+#include <stdio.h>
+#include <SFML/Graphics.hpp>
+#include <stdlib.h>
+#include <time.h>
+#include <SFML/Audio.hpp>
+#include <iostream>
+using namespace std;
+using namespace sf;
+
+struct Textures {
+    Texture title_bg;
+
+    Texture start_btn_def;
+    Texture quit_btn_def;
+    Texture start_btn_sel;
+    Texture home_bg;
+
+    Texture start_btn_prs;
+    Texture quit_btn_sel;
+    Texture quit_btn_prs;
+
+    Texture main_ch_front_x;
+    Texture main_ch_right_x;
+    Texture main_ch_left_x;
+    Texture main_ch_back_x;
+
+    Texture main_ch_front_o;
+    Texture main_ch_right_o;
+    Texture main_ch_left_o;
+    Texture main_ch_back_o;
+
+    Texture inven;
+
+    Texture dialogbox;
+};
+
+
+struct Box {
+    RectangleShape sprite;
+};
+
+struct Button {
+    RectangleShape sprite;
+};
+
+struct Player {
+    RectangleShape sprite;
+    int speed;
+};
+
+struct Inventory {
+    RectangleShape sprite;
+};
+
+
+const int W_WIDTH = 1920, W_HEIGHT = 1080;
+const int sp_inven_size = 3;
+const int inven_size = 7;
+const int sp_INVEN_WIDTH = 125, sp_INVEN_HEIGHT = 125;
+const int INVEN_WIDTH = 100, INVEN_HEIGHT = 100;
+
+int main(void) {
+
+    Vector2i mouse_pos;
+    int layer = 0;
+    int hand = 0;
+    int bag = 0;
+    int cnt = 0;
+
+    //시점 고정
+    View view;
+    view.setCenter(Vector2f(W_WIDTH / 2, W_HEIGHT / 2));
+    view.setSize(Vector2f(W_WIDTH, W_HEIGHT));
+
+    //사진 로드
+    struct Textures tex;
+    tex.title_bg.loadFromFile("./resource/images/background/title_img.png");
+    tex.home_bg.loadFromFile("./resource/images/background/map_home.png");
+
+    tex.start_btn_def.loadFromFile("./resource/images/btn/title_start_default.png");
+    tex.start_btn_sel.loadFromFile("./resource/images/btn/title_start_selected.png");
+    tex.start_btn_prs.loadFromFile("./resource/images/btn/title_start_pressed.png");
+    tex.quit_btn_def.loadFromFile("./resource/images/btn/title_exit_default.png");
+    tex.quit_btn_sel.loadFromFile("./resource/images/btn/title_exit_selected.png");
+    tex.quit_btn_prs.loadFromFile("./resource/images/btn/title_exit_pressed.png");
+
+    tex.main_ch_front_x.loadFromFile("./resource/images/character/main_ch/ch_f_x.png");
+    tex.main_ch_right_x.loadFromFile("./resource/images/character/main_ch/ch_r_x.png");
+    tex.main_ch_left_x.loadFromFile("./resource/images/character/main_ch/ch_l_x.png");
+    tex.main_ch_back_x.loadFromFile("./resource/images/character/main_ch/ch_b_x.png");
+
+    tex.main_ch_front_o.loadFromFile("./resource/images/character/main_ch/ch_f_o.png");
+    tex.main_ch_right_o.loadFromFile("./resource/images/character/main_ch/ch_r_o.png");
+    tex.main_ch_left_o.loadFromFile("./resource/images/character/main_ch/ch_l_o.png");
+    tex.main_ch_back_o.loadFromFile("./resource/images/character/main_ch/ch_b_o.png");
+
+    tex.dialogbox.loadFromFile("./resource/images/box/dialogbox.png");
+
+
+    tex.inven.loadFromFile("./resource/images/ui/inventory.png");
+
+
+    RenderWindow window(VideoMode(W_WIDTH, W_HEIGHT), "Frontier");
+    window.setFramerateLimit(60);
+
+    //대화창
+    Sprite dialogbox;
+    dialogbox.setTexture(tex.dialogbox);
+    dialogbox.setColor(sf::Color(255, 255, 255, 128));
+
+    float x = (window.getSize().x - dialogbox.getGlobalBounds().width) / 2.0f;//대화창 크기를 빼고 나누기2(중앙)
+    float y = window.getSize().y - dialogbox.getGlobalBounds().height - 150.0;
+    dialogbox.setPosition(x - 500, y - 150);
+
+    //배경
+    Sprite title;
+    title.setTexture(tex.title_bg);
+    title.setPosition(0, 0);
+
+    Sprite home;
+    home.setTexture(tex.home_bg);
+    home.setPosition(0, 0);
+
+    //플레이어
+    struct Player player;
+    player.sprite.setTexture(&tex.main_ch_front_x);
+    player.sprite.setSize(Vector2f(150, 150));
+    player.sprite.setPosition(W_WIDTH / 2 - 75, W_HEIGHT / 2 - 75);
+    player.speed = 9;
+
+    //폰트불러오기
+    sf::Font font;
+    if (!font.loadFromFile("arial.ttf"))//프로젝트와 같은 폴더에 위치
+    {
+        std::cerr << "Failed to load font file" << std::endl;
+        return 1;
+    }
+    //대사
+   string dialog[] = {
+    "Hello, World!",
+    "How are you doing?",
+    "This is an example dialog.",
+    "SFML is awesome!"
+    };
+ 
+    // 텍스트 출력용 객체 생성
+    sf::Text text;
+    text.setFont(font);
+    text.setCharacterSize(24);
+    text.setFillColor(sf::Color::White);
+    text.setPosition(x - 500, y - 150);// 출력할 위치
+
+    for (int i = 0; i < 4; i++) {
+        text.setString(dialog[i]);
+
+    while (window.isOpen()) {      //윈도우가 열려있는 동안
+        Event event;
+        mouse_pos = Mouse::getPosition(window);
+
+        //시작 버튼
+        struct Button start_button;
+        start_button.sprite.setTexture(&tex.start_btn_def);
+        start_button.sprite.setSize(Vector2f(400, 120));
+        start_button.sprite.setPosition(W_WIDTH / 2 - 200, 500);
+        if (start_button.sprite.getGlobalBounds().contains(mouse_pos.x, mouse_pos.y)) {
+            start_button.sprite.setTexture(&tex.start_btn_sel);
+        }
+        if (start_button.sprite.getGlobalBounds().contains(mouse_pos.x, mouse_pos.y) && Mouse::isButtonPressed(Mouse::Left)) {
+            start_button.sprite.setTexture(&tex.start_btn_prs);
+            layer = 1;
+        }
+
+        //종료 버튼
+        struct Button quit_button;
+        quit_button.sprite.setTexture(&tex.quit_btn_def);
+        quit_button.sprite.setSize(Vector2f(400, 120));
+        quit_button.sprite.setPosition(W_WIDTH / 2 - 200, 630);
+        if (quit_button.sprite.getGlobalBounds().contains(mouse_pos.x, mouse_pos.y)) {
+            quit_button.sprite.setTexture(&tex.quit_btn_sel);
+        }
+        if (quit_button.sprite.getGlobalBounds().contains(mouse_pos.x, mouse_pos.y) && Mouse::isButtonPressed(Mouse::Left)) {
+            quit_button.sprite.setTexture(&tex.quit_btn_prs);
+
+            return 0;
+        }
+
+
+        //플레이어 이동
+        if (Keyboard::isKeyPressed(Keyboard::Left) && layer != 0) {
+            view.move(-player.speed, 0);
+            dialogbox.setPosition(-player.speed, 0);
+            player.sprite.move(-player.speed, 0);
+            if (hand == 0) {
+                player.sprite.setTexture(&tex.main_ch_left_x);
+            }
+            else if (hand == 1) {
+                player.sprite.setTexture(&tex.main_ch_left_o);
+            }
+            // 윈도우에 출력
+               window.draw(dialogbox);
+               window.display();
+
+            }
+
+        }
+        if (Keyboard::isKeyPressed(Keyboard::Right) && layer != 0) {
+            view.move(player.speed, 0);
+            player.sprite.move(player.speed, 0);
+            dialogbox.setPosition(-player.speed, 0);
+            if (hand == 0) {
+                player.sprite.setTexture(&tex.main_ch_right_x);
+            }
+            else if (hand == 1) {
+                player.sprite.setTexture(&tex.main_ch_right_o);
+            }
+        }
+        if (Keyboard::isKeyPressed(Keyboard::Up) && layer != 0) {
+            view.move(0, -player.speed);
+            player.sprite.move(0, -player.speed);
+            dialogbox.setPosition(-player.speed, 0);
+            if (hand == 0) {
+                player.sprite.setTexture(&tex.main_ch_back_x);
+            }
+            else if (hand == 1) {
+                player.sprite.setTexture(&tex.main_ch_back_o);
+            }
+        }
+        if (Keyboard::isKeyPressed(Keyboard::Down) && layer != 0) {
+            view.move(0, player.speed);
+            player.sprite.move(0, player.speed);
+            dialogbox.setPosition(-player.speed, 0);
+            if (hand == 0) {
+                player.sprite.setTexture(&tex.main_ch_front_x);
+            }
+            else if (hand == 1) {
+                player.sprite.setTexture(&tex.main_ch_front_o);
+            }
+        }
+
+        //인벤토리
+        struct Inventory sp_inventory[sp_inven_size];
+        for (int i = 0; i < sp_inven_size; i++) {
+            sp_inventory[i].sprite.setTexture(&tex.inven);
+            sp_inventory[i].sprite.setSize(Vector2f(sp_INVEN_WIDTH, sp_INVEN_HEIGHT));
+        }
+        struct Inventory inventory[inven_size];
+        for (int i = 0; i < inven_size; i++) {
+            inventory[i].sprite.setTexture(&tex.inven);
+            inventory[i].sprite.setSize(Vector2f(INVEN_WIDTH, INVEN_HEIGHT));
+        }
+
+        while (window.pollEvent(event)) {   //윈도우 창 닫기
+            switch (event.type) {
+            case Event::Closed:
+                window.close();
+                break;
+            }
+
+        }
+
+
+
+
+        window.setView(view);
+
+        window.clear(Color::Black);
+
+        if (layer == 0) {
+            window.draw(title);
+            window.draw(start_button.sprite);
+            window.draw(quit_button.sprite);
+        }
+
+        if (layer == 1) {
+            window.draw(home);
+            window.draw(player.sprite);
+        }
+
+
+        if (layer != 0) {
+            for (int i = 0; i < sp_inven_size; i++) {
+                Vector2f player_pos = player.sprite.getPosition();
+                sp_inventory[i].sprite.setPosition(player_pos.x + W_WIDTH / 2 + 75 - sp_INVEN_WIDTH - (sp_INVEN_WIDTH * i), player_pos.y + W_HEIGHT / 2 - (INVEN_HEIGHT + sp_INVEN_HEIGHT - 75));
+                window.draw(sp_inventory[i].sprite);
+            }
+            for (int i = 0; i < inven_size; i++) {
+                Vector2f player_pos = player.sprite.getPosition();
+                inventory[i].sprite.setPosition(player_pos.x + W_WIDTH / 2 + 75 - INVEN_WIDTH - (INVEN_WIDTH * i), player_pos.y + W_HEIGHT / 2 - (INVEN_HEIGHT - 75));
+                window.draw(inventory[i].sprite);
+            }
+        }
+
+        window.display();
+    }
+
+}

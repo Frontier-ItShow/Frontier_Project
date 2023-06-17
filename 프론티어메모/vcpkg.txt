@@ -1,0 +1,38 @@
+vcpkg
+1. vcpkg를 설치하고 싶은 곳에서 cmd창을 연다.
+2. 창에 git clone https://github.com/Microsoft/vcpkg.git 를 쓰고 enter를 친다.
+3. 파일에서 vcpkg폴더가 생성하였으면 D:
+\본인위치\vcpkg> bootstrap-vcpkg.bat 를 쓰고 빌드한다.
+
+
+4. 설치가 완료가 되면 밑에 있는 문장을 순서대로 친다.
+D:\Work\vcpkg> vcpkg list
+D:\Work\vcpkg> vcpkg search ffmpeg
+vcpkg install curl
+5. vcpkg integrate install 입력하여 비주얼 스튜디오와 연동한다.
+
+->이러면 1차 성공
+
+SFML
+1. https://www.sfml-dev.org/download/sfml/2.5.1/ 들어가서  VisualC++15(2017)-64-bit버전 다운하기.
+2. 적당한 라이브러리에 저장 후 비주얼 스튜디오에서 프로젝트를 하나 만든 뒤 Frontier.cpp파일을 생성한다.
+3. 프로젝트-Frontier 속성에 들어가서 좌측 상단에 위치한 구성에서 모든구성으로 바꾼다.
+4. 구성 속성-C/C++-일반에서 추가 포함 디렉터리에 본인의 SFML include위치 옆에 입력한다.
+ex) C:\SFML-2.5.1\include
+5. 구성 속성 - 링커 - 일반에서 추가 라이브러리 디렉터리에 SFML lib위치를 옆에 입력한다.
+ex) C:\SFML-2.5.1\lib
+6. 구성 속성 - 링커 - 입력에서 추가 종속성을 눌러 편집을 클릭한다.
+7. 빈창에 sfml-main-d.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-audio-d.lib;sfml-network-d.lib 을 입력하여 확인버튼을 누른다.
+8. SMFL속 bin파일에 있는 모든파일들을 복사한 다음 게임이 저장되어 있는 곳에 붙여넣는다.
+ex)
+openal32.dll
+sfml-audio-2.dll
+.
+.
+.
+
+을 E:\DS\main 게임이 들어있는 곳에 붙여넣기 하면 성공
+
+
+
+
